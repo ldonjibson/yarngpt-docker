@@ -1,0 +1,18 @@
+services:
+  yarngpt2:
+    build: .
+    container_name: yarngpt2
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_ID=saheedniyi/YarnGPT2
+      - HF_TOKEN=${HF_TOKEN}
+      - WAV_CONFIG=/app/models/wavtokenizer_mediumdata_frame75_3s_nq1_code4096_dim512_kmeans200_attn.yaml
+      - WAV_CKPT=/app/models/wavtokenizer_large_speech_320_24k.ckpt
+    volumes:
+      - ./output:/app/output
+      - hf_cache:/root/.cache/huggingface
+    restart: unless-stopped
+
+volumes:
+  hf_cache:

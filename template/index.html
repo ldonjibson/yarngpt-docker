@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YarnGPT2 Local</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+    textarea, select, input, button { width: 100%; padding: 10px; margin: 8px 0 16px; box-sizing: border-box; }
+    button { cursor: pointer; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    audio { width: 100%; margin-top: 12px; }
+    .small { font-size: 14px; color: #555; }
+  </style>
+</head>
+<body>
+  <h1>YarnGPT2 Local</h1>
+
+  <label>Text</label>
+  <textarea id="text" rows="6" placeholder="Type text here..."></textarea>
+
+  <div class="row">
+    <div>
+      <label>Language</label>
+      <select id="lang"></select>
+    </div>
+    <div>
+      <label>Speaker</label>
+      <select id="speaker"></select>
+    </div>
+  </div>
+
+  <label>Temperature</label>
+  <input id="temperature" type="number" step="0.1" value="0.1" />
+
+  <label>Repetition penalty</label>
+  <input id="repetition_penalty" type="number" step="0.1" value="1.1" />
+
+  <label>Max length</label>
+  <input id="max_length" type="number" value="4000" />
+
+  <button id="generate">Generate Audio</button>
+
+  <p class="small" id="status"></p>
+  <audio id="player" controls></audio>
+  <p><a id="download" href="#" download="yarngpt2.wav" style="display:none;">Download audio</a></p>
+
+  <script>
+    const langEl = document.getElementById("lang");
+    const speakerEl = document.getElementById("speaker");
+    const statusEl = document.getElementById("status");
+    const player = document.getElementById("player");
+    const downloadLink = document.getElementById("download");
+
+    let voices = {};
+
+    async function loadVoices() {
+      const res = await fetch("/voices");
+      voices = await res.json();
+
+      langEl.innerHTML = "";
+      Object.keys(voices).forEach(lang => {
+        const opt = document.createElement("option");
+        opt.value = lang;
+        opt.textContent = lang;
+        langEl.appendChild(opt);
+      });
+
+      updateSpeakers();
+    }
+
+    function updateSpeakers() {
+      const lang = langEl.value;
+      const list = voices[lang] || [];
+      speakerEl.innerHTML = "";
+      list.forEach(name => {
+        const opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        speakerEl.appendChild(opt);
+      });
+    }
+
+    langEl.addEventListener("change", updateSpeakers);
+
+    document.getElementById("generate").addEventListener("click", async () => {
+      const payload = {
+        text: document.getElementById("text").value,
+        lang: langEl.value,
+        speaker_name: speakerEl.value,
+        temperature: parseFloat(document.getElementById("temperature").value),
+        repetition_penalty: parseFloat(document.getElementById("repetition_penalty").value),
+        max_length: parseInt(document.getElementById("max_length").value, 10)
+      };
+
+      statusEl.textContent = "Generating...";
+      const res = await fetch("/synthesize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        statusEl.textContent = "Error generating audio.";
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      player.src = url;
+      downloadLink.href = url;
+      downloadLink.download = `yarngpt2_${payload.lang}_${payload.speaker_name}.wav`;
+      downloadLink.style.display = "inline-block";
+      statusEl.textContent = "Done.";
+    });
+
+    loadVoices();
+  </script>
+</body>
+</html>
