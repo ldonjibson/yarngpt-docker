@@ -4,8 +4,13 @@ WORKDIR /app
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PIP_NO_CACHE_DIR=1
 
-RUN apt-get update && apt-get install -y git wget curl && rm -rf /var/lib/apt/lists/*
-
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    build-essential \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+    
 COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
