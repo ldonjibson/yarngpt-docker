@@ -4,7 +4,7 @@ transformers==4.44.2
 torch
 torchaudio
 accelerate==0.34.2
-outetts
+outetts==0.2.3
 uroman
 inflect
 numpy
