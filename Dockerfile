@@ -16,6 +16,7 @@ COPY requirements.txt /app/
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 RUN git clone https://github.com/saheedniyi02/yarngpt.git /app/yarngpt
+RUN pip install outetts uroman
 
 COPY models/ /app/models/
 COPY app.py download_models.py /app/
